@@ -48,7 +48,18 @@ This is a student portfolio project. If you find a security problem, contact the
 | PYSEC-2026-3815 / CVE-2026-45831 (GHSA-xph7-9rjv-w5fr) | chromadb >= 0.5.0: the server's `SimpleRBACAuthorizationProvider` ignores the tenant/database/collection scope of a permission | No server, no users, no tenants | Same |
 | PYSEC-2026-3813 / CVE-2026-45830 (GHSA-2wm9-hf6c-p5cr) | chromadb >= 0.4.17: the server lets any authenticated user act on any tenant's collections | No server, no users, no tenants | Same |
 
+| CVE-2026-112395 (GHSA-462x-pgg6-55fp) | pillow < 13.0.0: the tiled-TIFF decoder reads past the tile buffer | The app decodes no images (see below) | Remove the CI ignore when a Streamlit release allows pillow 13 and pillow >= 13.0.0 is installed |
+| CVE-2026-112397 (GHSA-58r4-6rv3-gfh8) | pillow < 13.0.0: out-of-bounds access in the morphology module on a zero-width image | Same as above | Same |
+| CVE-2026-112400 (GHSA-65qm-jvmh-6pqg) | pillow < 13.0.0: a GIF seek keeps a rejected size after a `DecompressionBombError` (denial of service) | Same as above | Same |
+| CVE-2026-112404 (GHSA-c6hw-5grf-ff96) | pillow < 13.0.0: the TIFF decoder's tile and RGBA paths read out of bounds, leaking heap memory into pixels | Same as above | Same |
+| CVE-2026-112895 (GHSA-p4wg-p73j-c528) | pillow < 13.0.0: unbounded recursion parsing a PDF page tree or trailer chain | Same as above; the app never opens a PDF with pillow (the T5.2 PDF is written by reportlab, not read) | Same |
+| CVE-2026-112896 (GHSA-pchr-8j38-3x4p) | pillow < 13.0.0: the TIFF encoder's ColorMap plane-size mismatch reads out of bounds | Same as above; the app writes no TIFF | Same |
+| CVE-2026-112897 (GHSA-q45j-58j2-45rg) | pillow < 13.0.0: the TIFF decoder returns uninitialised memory as pixels for short JPEG strips | Same as above | Same |
+| CVE-2026-112899 (GHSA-vx6w-vv9f-6gvg) | pillow < 13.0.0: EPS `load(scale)` lets Ghostscript render past the decompression bomb limit | Same as above | Same |
+
 Found by `pip-audit` on 2026-10-19 against chromadb 1.5.9 (the latest release that day); no fixed version was listed. The four are ignored by ID in `.github/workflows/ci.yml`, with the reason next to them. Any other advisory still fails CI.
+
+The pillow advisories were found by `pip-audit` in CI on 2026-10-20 (PR #52, at a docs-only commit) against pillow 12.3.0, which comes in through streamlit and reportlab (T1.6, issue #57; owner's decision: accept the risk until it can be fixed). All are fixed in pillow 13.0.0, but every Streamlit release up to 1.66.0 (the latest, pinned) requires `pillow<13`, so pillow cannot be upgraded yet. They are bugs in pillow's image decoders, reached only by opening a crafted image file, and the app opens none: there is no file upload, no `st.image` and no `Image.open` in `app.py`, `src/` or `scripts/`; Markdown images in an answer are replaced by their alt text before it is shown (T3.1), so no image is fetched or decoded; the planned PDF export (T5.2) draws text only. Any code that decodes an image (an upload, `st.image`, an image in the PDF) must first remove these ignores by upgrading pillow, or be reviewed against them. The eight are ignored by ID in `.github/workflows/ci.yml`, with the reason next to them.
 
 ## Known limits
 

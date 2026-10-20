@@ -55,6 +55,7 @@ Deadline: **2026-11-02**. Target dates leave 1-2 days of buffer.
 | T3.1 | #7 | First answer with sources (vector search) | M | T1.2, T1.3, T2.3, O1 | 10-24 | done |
 | T4.2 | #12 | Energy and macro tools with the calorie floor | M | T4.1, O3 | 10-25 | done |
 | T1.5 | #42 | Docs: run commands use the project's venv | S | T1.1 | 10-20 | done |
+| T1.6 | #57 | CI audit: accept the pillow decoder advisories until Streamlit allows pillow 13 | S | T1.1 | 10-20 | in review |
 | T3.2 | #8 | Query translation and structured filters | M | T3.1, O7 | 10-26 | done |
 | T3.3 | #9 | Hybrid search (BM25 + RRF) | M | T3.2, O2 | 10-27 | todo |
 | T3.4 | #10 | Prompt injection hardening | S | T3.1 | 10-27 | done |
@@ -132,6 +133,16 @@ Deadline: **2026-11-02**. Target dates leave 1-2 days of buffer.
 - [x] The "Run" line in `CLAUDE.md` says to use the venv too - review.
 - [x] The documented command `.venv\Scripts\streamlit.exe run app.py` is run in a new terminal and the app loads without error; CI passes - manual check done (2026-10-20: typed as written in a new PowerShell tab; the app loaded with its title and four tabs and no error; local ruff and pytest pass); CI green on PR #43, merged 2026-10-20.
 **Notes:** found on 2026-10-20 when the owner started the app with the system Python's `streamlit` (1.64, without the project's packages) after PR #41 merged.
+
+### T1.6 CI audit: accept the pillow decoder advisories until Streamlit allows pillow 13 (S) · status: in review · issue #57
+**Serves:** core 4 (technical base: CI with a dependency audit, as set up in T1.1); keeps the rule that every ignored advisory has a documented reason (`docs/SECURITY.md`).
+**Depends on:** T1.1
+**Acceptance criteria** (from the owner's decision, 2026-10-20: accept the risk, in its own ticket and PR from `main`)
+- [x] `.github/workflows/ci.yml` ignores exactly the eight pillow advisories pip-audit reports (CVE-2026-112395, -112397, -112400, -112404, -112895, -112896, -112897, -112899), with a comment giving the reason and when to remove them - the `security` job on this ticket's PR.
+- [x] `docs/SECURITY.md` "Accepted risks" lists each one, why it does not apply (the app decodes no images) and when to remove the ignore - review.
+- [x] `pip-audit .` with the flags from `ci.yml`, run locally (pip-audit 2.10.1, 2026-10-20): "No known vulnerabilities found, 13 ignored", exit code 0 - recorded in the PR.
+- [x] This entry and a `docs/PROGRESS.md` entry - review.
+**Notes:** found on 2026-10-20 when CI's `security` job failed on PR #52 (T3.3) at a docs-only commit: eight new advisories against pillow 12.3.0, all fixed in 13.0.0, which no Streamlit release (up to the pinned 1.66.0, `pillow<13`) allows yet. Owner's decision: accept the risk in its own PR, then merge `main` into PR #52. Code that decodes an image (an upload, `st.image`, an image in the T5.2 PDF) needs pillow upgraded first, or a review against these advisories.
 
 ## Epic 2: Knowledge base
 

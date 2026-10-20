@@ -15,6 +15,13 @@ What each PR did and why, newest first. **Read this before starting a ticket**, 
 
 ---
 
+## 2026-10-20 · T1.6 CI audit: accept the pillow decoder advisories · #<PR> (closes #57)
+- **Brief:** core 4 (technical base: CI with a dependency audit, from T1.1).
+- **What:** `.github/workflows/ci.yml` ignores eight pillow 12.3.0 advisories in `pip-audit`, with the reason next to them; `docs/SECURITY.md` lists them under "Accepted risks" with why they do not apply and when to remove them; plan entry for T1.6 (issue #57).
+- **Why:** on 2026-10-20 CI's `security` job began to fail on every branch (found on PR #52 at a docs-only commit): eight advisories in pillow's image decoders (TIFF, GIF, JPEG, EPS, PDF parsing), fixed in pillow 13.0.0. Pillow comes in through streamlit and reportlab, and no Streamlit release (up to the pinned 1.66.0) allows `pillow>=13`, so it cannot be upgraded. The advisories need a crafted image to be decoded, and the app decodes none (no upload, no `st.image`, no `Image.open`; Markdown images in answers become alt text; the PDF draws text). Owner's decision: accept the risk, in its own ticket and PR, then merge `main` into PR #52.
+- **Decisions & gotchas:** the advisories were read from OSV (`api.osv.dev`, query by package and version); querying OSV by the CVE ID returned "not found" that day, by package it listed them (and a ninth, CVE-2026-112403, a JPEG decoder overflow, that pip-audit did not report, so it is not ignored and would still fail CI if reported later). Locally `pip-audit .` with the CI flags: "No known vulnerabilities found, 13 ignored" (the four chromadb IDs match five entries, plus the eight).
+- **Follow-ups:** when Dependabot proposes a Streamlit release that allows pillow 13, upgrade both and remove the eight ignores and their `docs/SECURITY.md` rows; any feature that decodes an image (e.g. images in the T5.2 PDF) needs that first. Merge `main` into PR #52 (T3.3) once this lands.
+
 ## 2026-10-20 · T4.4 Tool-calling loop and tool results UI · #49 (closes #14)
 - **Brief:** core requirements 2 (three tools the model can call) and 5 (tool results shown); Medium 6 (tool results visualised); AC-6.
 - **What:**
