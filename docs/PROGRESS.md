@@ -15,7 +15,7 @@ What each PR did and why, newest first. **Read this before starting a ticket**, 
 
 ---
 
-## 2026-10-20 · T1.6 CI audit: accept the pillow decoder advisories · #<PR> (closes #57)
+## 2026-10-20 · T1.6 CI audit: accept the pillow decoder advisories · #59 (closes #57)
 - **Brief:** core 4 (technical base: CI with a dependency audit, from T1.1).
 - **What:** `.github/workflows/ci.yml` ignores eight pillow 12.3.0 advisories in `pip-audit`, with the reason next to them; `docs/SECURITY.md` lists them under "Accepted risks" with why they do not apply and when to remove them; plan entry for T1.6 (issue #57).
 - **Why:** on 2026-10-20 CI's `security` job began to fail on every branch (found on PR #52 at a docs-only commit): eight advisories in pillow's image decoders (TIFF, GIF, JPEG, EPS, PDF parsing), fixed in pillow 13.0.0. Pillow comes in through streamlit and reportlab, and no Streamlit release (up to the pinned 1.66.0) allows `pillow>=13`, so it cannot be upgraded. The advisories need a crafted image to be decoded, and the app decodes none (no upload, no `st.image`, no `Image.open`; Markdown images in answers become alt text; the PDF draws text). Owner's decision: accept the risk, in its own ticket and PR, then merge `main` into PR #52.
