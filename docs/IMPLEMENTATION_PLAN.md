@@ -55,7 +55,8 @@ Deadline: **2026-11-02**. Target dates leave 1-2 days of buffer.
 | T3.1 | #7 | First answer with sources (vector search) | M | T1.2, T1.3, T2.3, O1 | 10-24 | done |
 | T4.2 | #12 | Energy and macro tools with the calorie floor | M | T4.1, O3 | 10-25 | done |
 | T1.5 | #42 | Docs: run commands use the project's venv | S | T1.1 | 10-20 | done |
-| T1.6 | #55 | CI: accept the pillow 12.3.0 advisories until Streamlit allows pillow 13 | S | T1.1 | 10-20 | in review |
+| T1.6 | #55 | CI: accept the pillow 12.3.0 advisories until Streamlit allows pillow 13 | S | T1.1 | 10-20 | done |
+| T1.7 | #60 | CI audit test: whole advisory IDs and the `--ignore-vuln=` form (from T1.6's review) | S | T1.6 | 10-20 | in review |
 | T3.2 | #8 | Query translation and structured filters | M | T3.1, O7 | 10-26 | done |
 | T3.3 | #9 | Hybrid search (BM25 + RRF) | M | T3.2, O2 | 10-27 | todo |
 | T3.4 | #10 | Prompt injection hardening | S | T3.1 | 10-27 | done |
@@ -134,14 +135,24 @@ Deadline: **2026-11-02**. Target dates leave 1-2 days of buffer.
 - [x] The documented command `.venv\Scripts\streamlit.exe run app.py` is run in a new terminal and the app loads without error; CI passes - manual check done (2026-10-20: typed as written in a new PowerShell tab; the app loaded with its title and four tabs and no error; local ruff and pytest pass); CI green on PR #43, merged 2026-10-20.
 **Notes:** found on 2026-10-20 when the owner started the app with the system Python's `streamlit` (1.64, without the project's packages) after PR #41 merged.
 
-### T1.6 CI: accept the pillow 12.3.0 advisories until Streamlit allows pillow 13 (S) · status: in review · issue #55
+### T1.6 CI: accept the pillow 12.3.0 advisories until Streamlit allows pillow 13 (S) · status: done · issue #55
 **Serves:** core 3 and 4 (security measures, error-free CI with a dependency audit); `.claude/rules/security-privacy.md` (no ignore without a documented reason). Owner's request (2026-10-20), after CI's security job failed on PR #53 (T4.7) and on every branch.
 **Depends on:** T1.1
 **Acceptance criteria** (from the owner's request, 2026-10-20)
 - [x] `.github/workflows/ci.yml` ignores exactly the eight pillow advisories by ID, with a comment giving the reason and when to remove them; the chromadb ignores are unchanged - review, and `pip-audit .` with the CI flags passes locally (2026-10-20: "No known vulnerabilities found, 13 ignored" for the 12 IDs).
 - [x] `docs/SECURITY.md` lists each advisory under "Accepted risks" (ID, GHSA, what it is, why it does not apply here, when to review), and says Pillow is not used by the app's code - review; `tests/test_ci_audit.py`: `test_every_ignored_advisory_has_an_accepted_risk_row`, `test_no_advisory_is_ignored_twice`, `test_ci_ignores_some_advisories`.
-- [ ] CI's security job passes on the PR - CI.
+- [x] CI's security job passes on the PR - CI: `security` passed on PR #58 at 269d0cb, and the CI run on `main` after the merge (run 39500292516) passed.
 **Notes:** pillow 13.0.0 fixes all eight; streamlit 1.66.0 requires `pillow<13` and no later streamlit exists (checked on PyPI, 2026-10-20). Remove the ignores when Dependabot proposes a streamlit release that allows pillow 13. If a later ticket adds an image upload or reads images with Pillow, review these ignores first.
+
+### T1.7 CI audit test: whole advisory IDs and the `--ignore-vuln=` form (S) · status: in review · issue #60
+**Serves:** core 3 and 4 (security measures; a CI audit whose ignores are all documented); `.claude/rules/security-privacy.md` (no ignore without a documented reason). Owner's request (2026-10-20): the points from the code review of PR #58 (T1.6).
+**Depends on:** T1.6
+**Acceptance criteria** (from the owner's request, 2026-10-20)
+- [x] `tests/test_ci_audit.py` reads both `--ignore-vuln ID` and `--ignore-vuln=ID`, and an ignored advisory counts as documented only when its whole ID appears in an "Accepted risks" row (`PYSEC-2026-31` does not match a row for `PYSEC-2026-311`) - unit tests on the helpers with small text samples (`test_both_flag_forms_are_read`, `test_only_the_accepted_risks_rows_are_read`, `test_a_whole_id_in_a_row_is_documented`, `test_a_truncated_or_longer_id_is_not_documented`); mutation checks: a substring match and the old flag pattern each fail them.
+- [x] `docs/SECURITY.md` no longer speaks of the T5.2 PDF export as built: it is planned, writes with reportlab and reads nothing - review.
+- [x] T5.2's entry notes that reportlab hands any embedded image (`drawImage`, `Image` flowables) to Pillow, so an image in the PDF means reviewing T1.6's pillow ignores first - review.
+- [x] T1.6's last criterion is ticked with the CI run as evidence, and T1.6 marked done (#58 merged) - review.
+**Notes:** open PR #54 (T5.2) adds its own pillow ignores and rows and edits T5.2's entry; it has to merge `main` after #58 anyway, and should keep this note (its image guard test already checks that the PDF embeds no image).
 
 ## Epic 2: Knowledge base
 
@@ -323,6 +334,8 @@ Deadline: **2026-11-02**. Target dates leave 1-2 days of buffer.
 - [ ] A download button offers it; no file is written on the server - AppTest and a unit test that checks no file is created.
 - [ ] Non-Latin characters in source titles (e.g. "β") do not break the PDF - unit test.
 - [ ] Answers are unescaped with `html.unescape`, so an entity the model copied from the escaped prompt (`&lt;`, `&gt;`, `&amp;`) shows as the character, as it does in the app's Markdown; then, since reportlab's `Paragraph` reads its text as markup (`<b>`, `<font>`, `<link href=...>`), they are escaped for it with `xml.sax.saxutils.escape` before any `Paragraph` (or drawn as plain text), so a `<` cannot break the PDF and model text cannot add a link or formatting - unit test: an answer holding "p &lt; 0.05" reads back "p < 0.05", and a raw `<b>x</b>` or `<link href="https://example.com">x</link>` reads back as literal text with no link annotation (follow-up from T3.4; owner's choices, 2026-10-20).
+
+**Notes:** reportlab hands any embedded image (`drawImage`, `Image` flowables) to Pillow, which has eight known advisories accepted in T1.6 because the app opens no image; an image in the PDF (a logo, a chart) means reviewing those ignores first (T1.7, from PR #58's review).
 
 ### T5.3 Domain guardrails (S) · status: done · issue #18
 **Serves:** core 3 (domain security); AC-12.

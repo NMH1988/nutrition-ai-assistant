@@ -15,6 +15,13 @@ What each PR did and why, newest first. **Read this before starting a ticket**, 
 
 ---
 
+## 2026-10-20 · T1.7 CI audit test: whole advisory IDs and the `--ignore-vuln=` form · #PR (closes #60)
+- **Brief:** core 3 and 4 (security measures; a CI audit whose ignores are all documented).
+- **What:** `tests/test_ci_audit.py`: the helpers take text (`ignored_ids()`, `accepted_risk_rows()`, `is_documented()`), read both `--ignore-vuln ID` and `--ignore-vuln=ID`, and match whole IDs only; four new tests on small samples. `docs/SECURITY.md`: the T5.2 PDF export is described as planned. Plan: T1.6 done with its CI evidence, T1.7 added, a note on T5.2 that an image in the PDF goes through Pillow.
+- **Why:** the code review of PR #58 found that the T1.6 test could pass for an advisory that is ignored but not documented: `PYSEC-2026-31` matched the row for `PYSEC-2026-311` (a substring check), and an `--ignore-vuln=ID` flag, which pip-audit accepts, was never read. Both are now caught (mutation checks: each old behaviour fails the new tests).
+- **Decisions & gotchas:** owner's request to fix the review points in a small PR from `main`. An ID followed by a letter, digit or `-` is a different ID, so the lookarounds are `[\w-]`. Open PR #54 (T5.2) edits the same T5.2 entry and adds its own pillow rows: whoever merges second keeps both.
+- **Follow-ups:** none beyond T1.6's (remove the pillow ignores once a streamlit release allows pillow 13).
+
 ## 2026-10-20 · T1.6 CI: accept the pillow 12.3.0 advisories until Streamlit allows pillow 13 · #58 (closes #55)
 - **Brief:** core 3 and 4 (security measures; a working CI with a dependency audit).
 - **What:** `.github/workflows/ci.yml` ignores eight pillow 12.3.0 advisories in `pip-audit` (CVE-2026-112895, -112400, -112397, -112896, -112897, -112395, -112404, -112899), with the reason; `docs/SECURITY.md` has a row for each under "Accepted risks" and a paragraph on why they do not apply; `tests/test_ci_audit.py` (new) checks that every advisory ignored in CI has a row there; plan (T1.6, issue #55).
