@@ -15,7 +15,7 @@ What each PR did and why, newest first. **Read this before starting a ticket**, 
 
 ---
 
-## 2026-10-20 · T1.7 CI audit test: whole advisory IDs and the `--ignore-vuln=` form · #PR (closes #60)
+## 2026-10-20 · T1.7 CI audit test: whole advisory IDs and the `--ignore-vuln=` form · #61 (closes #60)
 - **Brief:** core 3 and 4 (security measures; a CI audit whose ignores are all documented).
 - **What:** `tests/test_ci_audit.py`: the helpers take text (`ignored_ids()`, `accepted_risk_rows()`, `is_documented()`), read both `--ignore-vuln ID` and `--ignore-vuln=ID`, and match whole IDs only; four new tests on small samples. `docs/SECURITY.md`: the T5.2 PDF export is described as planned. Plan: T1.6 done with its CI evidence, T1.7 added, a note on T5.2 that an image in the PDF goes through Pillow.
 - **Why:** the code review of PR #58 found that the T1.6 test could pass for an advisory that is ignored but not documented: `PYSEC-2026-31` matched the row for `PYSEC-2026-311` (a substring check), and an `--ignore-vuln=ID` flag, which pip-audit accepts, was never read. Both are now caught (mutation checks: each old behaviour fails the new tests).
